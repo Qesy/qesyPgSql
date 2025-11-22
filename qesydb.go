@@ -306,38 +306,43 @@ func (m *Model) getSQLCond() string {
 		return " WHERE " + str + " "
 	}
 	var strArr []string
+	i := 1
 	if arr, ok := m.Cond.(map[string]string); ok {
+
 		for k, v := range arr {
 			m.Scan = append(m.Scan, v)
+			placeholder := fmt.Sprintf("$%d", i)
 			if strings.Contains(k, "LIKE") {
-				strArr = append(strArr, k+" ?")
+				strArr = append(strArr, k+" "+placeholder)
 			} else if strings.Contains(k, ">") || strings.Contains(k, "<") {
-				strArr = append(strArr, k+" ?")
+				strArr = append(strArr, k+" "+placeholder)
 			} else {
-				strArr = append(strArr, k+"=?")
+				strArr = append(strArr, k+"="+placeholder)
 			}
+			i++
 		}
 	} else if arr, ok := m.Cond.(map[string]interface{}); ok {
 		for k, v := range arr {
+			placeholder := fmt.Sprintf("$%d", i)
 			if _, ok := v.(string); ok {
 				m.Scan = append(m.Scan, v)
 				if strings.Contains(k, "LIKE") {
-					strArr = append(strArr, k+" ?")
+					strArr = append(strArr, k+" "+placeholder)
 				} else if strings.Contains(k, ">") || strings.Contains(k, "<") {
-					strArr = append(strArr, k+" ?")
+					strArr = append(strArr, k+" "+placeholder)
 				} else {
-					strArr = append(strArr, k+"=?")
+					strArr = append(strArr, k+"="+placeholder)
 				}
 
 			} else if isStrArrTmp, ok := v.([]string); ok {
 				if len(isStrArrTmp) == 0 {
 					m.Scan = append(m.Scan, "")
-					strArr = append(strArr, k+"=?")
+					strArr = append(strArr, k+"="+placeholder)
 				} else {
 					SqlIn := []string{}
 					for _, sv := range isStrArrTmp {
 						m.Scan = append(m.Scan, sv)
-						SqlIn = append(SqlIn, "?")
+						SqlIn = append(SqlIn, placeholder)
 					}
 					strArr = append(strArr, k+" in ("+strings.Join(SqlIn, ",")+")")
 				}
@@ -374,19 +379,25 @@ func (m *Model) getGroupBy() string {
 
 func (m *Model) getSQLUpdate() string {
 	var strArr []string
+	i := 1
 	for k, v := range m.Update {
+		placeholder := fmt.Sprintf("$%d", i)
 		m.Scan = append(m.Scan, v)
-		strArr = append(strArr, k+"=?")
+		strArr = append(strArr, k+"="+placeholder)
+		i++
 	}
 	return strings.Join(strArr, ",")
 }
 
 func (m *Model) getSQLInsert() string {
 	var fieldArr, valueArr []string
+	i := 1
 	for k, v := range m.Insert {
 		m.Scan = append(m.Scan, v)
 		fieldArr = append(fieldArr, k)
-		valueArr = append(valueArr, "?")
+		placeholder := fmt.Sprintf("$%d", i)
+		valueArr = append(valueArr, placeholder)
+		i++
 	}
 	return "(" + strings.Join(fieldArr, ",") + ") values (" + strings.Join(valueArr, ",") + ")"
 }
@@ -397,13 +408,16 @@ func (m *Model) getSQLInsertArr() string {
 		fieldArr = append(fieldArr, k)
 		fieldArrKey = append(fieldArrKey, k)
 	}
+	i := 1
 	for _, value := range m.InsertArr {
 		var valueArr []string
 		for _, v := range fieldArrKey {
 			m.Scan = append(m.Scan, value[v])
-			valueArr = append(valueArr, "?")
+			placeholder := fmt.Sprintf("$%d", i)
+			valueArr = append(valueArr, placeholder)
 		}
 		valuesArr = append(valuesArr, "("+strings.Join(valueArr, ",")+")")
+		i++
 	}
 	return "(" + strings.Join(fieldArr, ",") + ")" + " values " + strings.Join(valuesArr, ",")
 }
