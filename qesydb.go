@@ -157,9 +157,9 @@ func (m *Model) ExecUpdate() error {
 }
 
 // ExecInsert 添加
-func (m *Model) ExecInsert() (string, error) {
+func (m *Model) ExecInsert(PrimaryKey string) (string, error) {
 	insert := m.getSQLInsert()
-	sqlStr := "INSERT INTO " + m.Table + " " + insert + ";"
+	sqlStr := `INSERT INTO ` + m.Table + ` ` + insert + ` RETURNING "UserId";`
 	m.Debug(sqlStr)
 	var err error
 	var id string

@@ -11,8 +11,8 @@ func SelectOneTx(TableName string, Cond map[string]string, m Model) (map[string]
 }
 
 // InsertTx 插入
-func InsertTx(TableName string, InsertArr map[string]string, m Model) (string, error) {
-	return m.SetTable(TableName).SetInsert(InsertArr).ExecInsert()
+func InsertTx(TableName string, InsertArr map[string]string, PrimaryKey string, m Model) (string, error) {
+	return m.SetTable(TableName).SetInsert(InsertArr).ExecInsert(PrimaryKey)
 }
 
 // InsertBatchTx 批量插入
