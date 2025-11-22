@@ -18,10 +18,12 @@ var Db *pgxpool.Pool
 
 // OpenLog 是否记录日志
 var (
-	OpenLog         int           = 0
-	MaxOpenConns    int           = 600
-	MaxIdleConns    int           = 600
-	ConnMaxLifetime time.Duration = time.Minute * 3
+	OpenLog           int           = 0
+	MaxConns          int32         = 100
+	MinConns          int32         = 20
+	MaxConnIdleTime   time.Duration = 15 * time.Minute
+	MaxConnLifetime   time.Duration = 2 * time.Hour
+	HealthCheckPeriod time.Duration = 1 * time.Minute
 )
 
 // Model 结构
@@ -51,10 +53,11 @@ func Connect(Host, Port, UserName, Password, DbName string) {
 	}
 
 	// 连接池配置
-	config.MaxConns = 10 // 最大连接数
-	config.MinConns = 2  // 最小连接数
-	config.MaxConnLifetime = time.Hour
-	config.MaxConnIdleTime = 30 * time.Minute
+	config.MaxConns = MaxConns                   // 最大连接数
+	config.MinConns = MinConns                   // 最小连接数
+	config.MaxConnIdleTime = MaxConnIdleTime     // 连接最大空闲时间
+	config.MaxConnLifetime = MaxConnLifetime     // 连接最大存活时间
+	config.HealthCheckPeriod = HealthCheckPeriod // 健康检查周期
 
 	Db, err = pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
