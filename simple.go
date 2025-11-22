@@ -19,9 +19,9 @@ func SelectOne(TableName string, Cond map[string]string) (map[string]string, err
 }
 
 // Insert 插入一条
-func Insert(TableName string, InsertArr map[string]string) (string, error) {
+func Insert(TableName string, InsertArr map[string]string, PrimaryKey string) (string, error) {
 	var m Model
-	return m.SetTable(TableName).SetInsert(InsertArr).ExecInsert()
+	return m.SetTable(TableName).SetInsert(InsertArr).ExecInsert(PrimaryKey)
 }
 
 // InsertBatch 批量插入
