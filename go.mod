@@ -1,4 +1,4 @@
-module qesyPgSql
+module github.com/Qesy/qesyPgSql
 
 go 1.24.1
 
