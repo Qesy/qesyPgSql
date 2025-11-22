@@ -63,9 +63,6 @@ func Connect(Host, Port, UserName, Password, DbName string) {
 	if err != nil {
 		log.Fatalf("Unable to create connection pool: %v\n", err)
 	}
-
-	log.Println("PostgreSQL connected.")
-
 }
 
 // Begin 开始事务
@@ -379,7 +376,7 @@ func (m *Model) getSQLUpdate() string {
 	var strArr []string
 	for k, v := range m.Update {
 		m.Scan = append(m.Scan, v)
-		strArr = append(strArr, "`"+k+"`=?")
+		strArr = append(strArr, k+"=?")
 	}
 	return strings.Join(strArr, ",")
 }
@@ -388,7 +385,7 @@ func (m *Model) getSQLInsert() string {
 	var fieldArr, valueArr []string
 	for k, v := range m.Insert {
 		m.Scan = append(m.Scan, v)
-		fieldArr = append(fieldArr, "`"+k+"`")
+		fieldArr = append(fieldArr, k)
 		valueArr = append(valueArr, "?")
 	}
 	return "(" + strings.Join(fieldArr, ",") + ") values (" + strings.Join(valueArr, ",") + ")"
@@ -397,7 +394,7 @@ func (m *Model) getSQLInsert() string {
 func (m *Model) getSQLInsertArr() string {
 	fieldArr, fieldArrKey, valuesArr := []string{}, []string{}, []string{}
 	for k := range m.InsertArr[0] {
-		fieldArr = append(fieldArr, "`"+k+"`")
+		fieldArr = append(fieldArr, k)
 		fieldArrKey = append(fieldArrKey, k)
 	}
 	for _, value := range m.InsertArr {
