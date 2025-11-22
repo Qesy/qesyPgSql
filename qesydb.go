@@ -394,7 +394,7 @@ func (m *Model) getSQLInsert() string {
 	i := 1
 	for k, v := range m.Insert {
 		m.Scan = append(m.Scan, v)
-		fieldArr = append(fieldArr, k)
+		fieldArr = append(fieldArr, "\""+k+"\"")
 		placeholder := fmt.Sprintf("$%d", i)
 		valueArr = append(valueArr, placeholder)
 		i++
