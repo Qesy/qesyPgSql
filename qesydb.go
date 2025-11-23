@@ -342,6 +342,7 @@ func (m *Model) getSQLCond() string {
 					for _, sv := range isStrArrTmp {
 						m.Scan = append(m.Scan, sv)
 						SqlIn = append(SqlIn, placeholder)
+						m.ParamsIndex++
 					}
 					strArr = append(strArr, k+" in ("+strings.Join(SqlIn, ",")+")")
 				}
@@ -412,6 +413,7 @@ func (m *Model) getSQLInsertArr() string {
 			m.Scan = append(m.Scan, value[v])
 			placeholder := fmt.Sprintf("$%d", m.ParamsIndex)
 			valueArr = append(valueArr, placeholder)
+			m.ParamsIndex++
 		}
 		valuesArr = append(valuesArr, "("+strings.Join(valueArr, ",")+")")
 		m.ParamsIndex++
