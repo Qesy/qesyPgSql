@@ -118,7 +118,7 @@ func (m *Model) execSelect() ([]map[string]string, error) {
 	groupby := m.getGroupBy()
 	sort := m.getSort()
 	limit := m.getSQLLimite()
-	sqlStr := "SELECT " + field + " FROM " + m.Table + cond + groupby + sort + limit + ";"
+	sqlStr := `SELECT ` + field + ` FROM ` + m.Table + cond + groupby + sort + limit + `;`
 	return m.query(sqlStr)
 }
 
@@ -136,7 +136,7 @@ func (m *Model) ExecSelectOne() (map[string]string, error) {
 func (m *Model) ExecUpdate() error {
 	updateStr := m.getSQLUpdate()
 	condStr := m.getSQLCond()
-	sqlStr := "UPDATE " + m.Table + " SET " + updateStr + condStr + ";"
+	sqlStr := `UPDATE ` + m.Table + ` SET ` + updateStr + condStr + `;`
 	m.Debug(sqlStr)
 	var err error
 	if m.Tx == nil {
@@ -183,7 +183,7 @@ func (m *Model) ExecInsert(PrimaryKey string) (string, error) {
 // ExecInsertBatch 批量添加 （预计要删除）
 func (m *Model) ExecInsertBatch() ([]string, error) {
 	insert := m.getSQLInsertArr()
-	sqlStr := "INSERT INTO " + m.Table + " " + insert + ";"
+	sqlStr := `INSERT INTO ` + m.Table + ` ` + insert + `;`
 	m.Debug(sqlStr)
 	var err error
 	var ids []string
@@ -258,7 +258,7 @@ func (m *Model) ExecInsertBatch() ([]string, error) {
 // ExecDelete 删除
 func (m *Model) ExecDelete() error {
 	condStr := m.getSQLCond()
-	sqlStr := "DELETE FROM " + m.Table + condStr + ";"
+	sqlStr := `DELETE FROM ` + m.Table + condStr + `;`
 	m.Debug(sqlStr)
 	var err error
 	if m.Tx == nil {
@@ -300,10 +300,10 @@ func (m *Model) Exec(sqlStr string, params []interface{}) error {
 
 func (m *Model) getSQLCond() string {
 	if str, ok := m.Cond.(string); ok || m.Cond == nil {
-		if str == "" {
+		if str == `` {
 			return str
 		}
-		return " WHERE " + str + " "
+		return ` WHERE ` + str + ` `
 	}
 	var strArr []string
 	i := 1
@@ -383,7 +383,7 @@ func (m *Model) getSQLUpdate() string {
 	for k, v := range m.Update {
 		placeholder := fmt.Sprintf("$%d", i)
 		m.Scan = append(m.Scan, v)
-		strArr = append(strArr, k+"="+placeholder)
+		strArr = append(strArr, `"`+k+`"=`+placeholder)
 		i++
 	}
 	return strings.Join(strArr, ",")
