@@ -6,6 +6,7 @@ func NewModel() Model {
 	var m Model
 	m.Ctx = context.Background()
 	m.Tx = nil
+	m.ParamsIndex = 1
 	return m
 }
 
