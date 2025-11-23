@@ -1,11 +1,5 @@
 package qesyPgSql
 
-// ModelGet 获取一个Model
-func ModelGet() Model {
-	var m Model
-	return m
-}
-
 // Select 查询
 func Select(TableName string, Cond map[string]string) ([]map[string]string, error) {
 	var m Model
