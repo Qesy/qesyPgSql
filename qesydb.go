@@ -157,9 +157,9 @@ func (m *Model) ExecUpdate() error {
 }
 
 // ExecInsert 添加
-func (m *Model) ExecInsert() (string, error) {
+func (m *Model) ExecInsert(PrimaryKey string) (string, error) {
 	insert := m.getSQLInsert()
-	sqlStr := "INSERT INTO " + m.Table + " " + insert + ";"
+	sqlStr := "INSERT INTO " + m.Table + " " + insert + " RETURNING " + PrimaryKey + ";"
 	m.Debug(sqlStr)
 	var err error
 	var id string
@@ -394,7 +394,7 @@ func (m *Model) getSQLInsert() string {
 	i := 1
 	for k, v := range m.Insert {
 		m.Scan = append(m.Scan, v)
-		fieldArr = append(fieldArr, "\""+k+"\"")
+		fieldArr = append(fieldArr, k)
 		placeholder := fmt.Sprintf("$%d", i)
 		valueArr = append(valueArr, placeholder)
 		i++
