@@ -25,9 +25,9 @@ func Insert(TableName string, InsertArr map[string]string, PrimaryKey string) (s
 }
 
 // InsertBatch 批量插入
-func InsertBatch(TableName string, InsertArr []map[string]string) ([]string, error) {
+func InsertBatch(TableName string, InsertArr []map[string]string, PrimaryKey string) ([]string, error) {
 	var m Model
-	return m.SetTable(TableName).SetInsertArr(InsertArr).ExecInsertBatch()
+	return m.SetTable(TableName).SetInsertArr(InsertArr).ExecInsertBatch(PrimaryKey)
 }
 
 // Replace 替换 (PgSql暂时不做)
