@@ -182,9 +182,9 @@ func (m *Model) ExecInsert(PrimaryKey string) (string, error) {
 }
 
 // ExecInsertBatch 批量添加 （预计要删除）
-func (m *Model) ExecInsertBatch() ([]string, error) {
+func (m *Model) ExecInsertBatch(PrimaryKey string) ([]string, error) {
 	insert := m.getSQLInsertArr()
-	sqlStr := `INSERT INTO ` + m.Table + ` ` + insert + `;`
+	sqlStr := `INSERT INTO ` + m.Table + ` ` + insert + " RETURNING " + PrimaryKey + ";"
 	m.Debug(sqlStr)
 	var err error
 	var ids []string
@@ -203,8 +203,8 @@ func (m *Model) ExecInsertBatch() ([]string, error) {
 			m.Scan...,
 		)
 	}
+	var id string
 	for rows.Next() {
-		var id string
 		rows.Scan(&id)
 		ids = append(ids, id)
 	}
