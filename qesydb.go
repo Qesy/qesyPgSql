@@ -28,20 +28,21 @@ var (
 
 // Model 结构
 type Model struct {
-	Cond      interface{}
-	Insert    map[string]string
-	InsertArr []map[string]string
-	Update    map[string]string
-	Field     string
-	Table     string
-	Index     string
-	Limit     interface{}
-	Sort      string
-	GroupBy   string
-	IsDeug    int
-	Tx        pgx.Tx
-	Ctx       context.Context
-	Scan      []interface{}
+	Cond        interface{}
+	Insert      map[string]string
+	InsertArr   []map[string]string
+	Update      map[string]string
+	Field       string
+	Table       string
+	Index       string
+	Limit       interface{}
+	Sort        string
+	GroupBy     string
+	IsDeug      int
+	ParamsIndex int
+	Tx          pgx.Tx
+	Ctx         context.Context
+	Scan        []interface{}
 }
 
 // Connect  is a method with a sql.
@@ -306,12 +307,10 @@ func (m *Model) getSQLCond() string {
 		return ` WHERE ` + str + ` `
 	}
 	var strArr []string
-	i := 1
 	if arr, ok := m.Cond.(map[string]string); ok {
-
 		for k, v := range arr {
 			m.Scan = append(m.Scan, v)
-			placeholder := fmt.Sprintf("$%d", i)
+			placeholder := fmt.Sprintf("$%d", m.ParamsIndex)
 			if strings.Contains(k, "LIKE") {
 				strArr = append(strArr, k+" "+placeholder)
 			} else if strings.Contains(k, ">") || strings.Contains(k, "<") {
@@ -319,11 +318,11 @@ func (m *Model) getSQLCond() string {
 			} else {
 				strArr = append(strArr, k+"="+placeholder)
 			}
-			i++
+			m.ParamsIndex++
 		}
 	} else if arr, ok := m.Cond.(map[string]interface{}); ok {
 		for k, v := range arr {
-			placeholder := fmt.Sprintf("$%d", i)
+			placeholder := fmt.Sprintf("$%d", m.ParamsIndex)
 			if _, ok := v.(string); ok {
 				m.Scan = append(m.Scan, v)
 				if strings.Contains(k, "LIKE") {
@@ -347,6 +346,7 @@ func (m *Model) getSQLCond() string {
 					strArr = append(strArr, k+" in ("+strings.Join(SqlIn, ",")+")")
 				}
 			}
+			m.ParamsIndex++
 		}
 	}
 	if len(strArr) == 0 {
@@ -379,25 +379,23 @@ func (m *Model) getGroupBy() string {
 
 func (m *Model) getSQLUpdate() string {
 	var strArr []string
-	i := 1
 	for k, v := range m.Update {
-		placeholder := fmt.Sprintf("$%d", i)
+		placeholder := fmt.Sprintf("$%d", m.ParamsIndex)
 		m.Scan = append(m.Scan, v)
 		strArr = append(strArr, `"`+k+`"=`+placeholder)
-		i++
+		m.ParamsIndex++
 	}
 	return strings.Join(strArr, ",")
 }
 
 func (m *Model) getSQLInsert() string {
 	var fieldArr, valueArr []string
-	i := 1
 	for k, v := range m.Insert {
 		m.Scan = append(m.Scan, v)
 		fieldArr = append(fieldArr, k)
-		placeholder := fmt.Sprintf("$%d", i)
+		placeholder := fmt.Sprintf("$%d", m.ParamsIndex)
 		valueArr = append(valueArr, placeholder)
-		i++
+		m.ParamsIndex++
 	}
 	return "(" + strings.Join(fieldArr, ",") + ") values (" + strings.Join(valueArr, ",") + ")"
 }
@@ -408,16 +406,15 @@ func (m *Model) getSQLInsertArr() string {
 		fieldArr = append(fieldArr, k)
 		fieldArrKey = append(fieldArrKey, k)
 	}
-	i := 1
 	for _, value := range m.InsertArr {
 		var valueArr []string
 		for _, v := range fieldArrKey {
 			m.Scan = append(m.Scan, value[v])
-			placeholder := fmt.Sprintf("$%d", i)
+			placeholder := fmt.Sprintf("$%d", m.ParamsIndex)
 			valueArr = append(valueArr, placeholder)
 		}
 		valuesArr = append(valuesArr, "("+strings.Join(valueArr, ",")+")")
-		i++
+		m.ParamsIndex++
 	}
 	return "(" + strings.Join(fieldArr, ",") + ")" + " values " + strings.Join(valuesArr, ",")
 }
@@ -445,6 +442,7 @@ func (m *Model) Clean() {
 	m.Sort = ""
 	m.GroupBy = ""
 	m.IsDeug = 0
+	m.ParamsIndex = 1
 	m.Scan = []interface{}{}
 }
 
