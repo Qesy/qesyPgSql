@@ -16,8 +16,8 @@ func InsertTx(TableName string, InsertArr map[string]string, PrimaryKey string, 
 }
 
 // InsertBatchTx 批量插入
-func InsertBatchTx(TableName string, InsertArr []map[string]string, m Model) ([]string, error) {
-	return m.SetTable(TableName).SetInsertArr(InsertArr).ExecInsertBatch()
+func InsertBatchTx(TableName string, InsertArr []map[string]string, PrimaryKey string, m Model) ([]string, error) {
+	return m.SetTable(TableName).SetInsertArr(InsertArr).ExecInsertBatch(PrimaryKey)
 }
 
 // ReplaceTx 替换
