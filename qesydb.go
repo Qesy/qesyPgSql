@@ -466,7 +466,7 @@ func (m *Model) query(sqlStr string) ([]map[string]string, error) {
 	m.Debug(sqlStr)
 	var err error
 	var rows pgx.Rows
-	var resultsSlice []map[string]string
+	resultsSlice := make([]map[string]string, 0)
 	if m.Tx == nil {
 		rows, err = Db.Query(
 			m.Ctx,
