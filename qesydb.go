@@ -354,7 +354,7 @@ func (m *Model) getSQLCond() string {
 	if len(strArr) == 0 {
 		return ""
 	}
-	return " WHERE " + strings.Join(strArr, " && ")
+	return " WHERE " + strings.Join(strArr, " AND ")
 }
 
 func (m *Model) getSQLField() string {
