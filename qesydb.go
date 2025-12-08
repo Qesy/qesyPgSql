@@ -2,6 +2,7 @@ package qesyPgSql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -164,21 +165,29 @@ func (m *Model) ExecInsert(PrimaryKey string) (string, error) {
 	m.Debug(sqlStr)
 	var err error
 	var id string
+	var row pgx.Row
 	if m.Tx == nil {
-		err = Db.QueryRow(
+		row = Db.QueryRow(
 			m.Ctx,
 			sqlStr,
 			m.Scan...,
-		).Scan(&id)
+		)
 	} else {
-		err = m.Tx.QueryRow(
+		row = m.Tx.QueryRow(
 			m.Ctx,
 			sqlStr,
 			m.Scan...,
-		).Scan(&id)
+		)
+	}
+	err = row.Scan(&id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", fmt.Errorf("insert failed: RETURNING returned no rows")
+		}
+		return "", err
 	}
 	m.Clean()
-	return id, err
+	return id, nil
 }
 
 // ExecInsertBatch 批量添加 （预计要删除）
@@ -203,11 +212,24 @@ func (m *Model) ExecInsertBatch(PrimaryKey string) ([]string, error) {
 			m.Scan...,
 		)
 	}
-	var id string
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
 	for rows.Next() {
-		rows.Scan(&id)
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
 		ids = append(ids, id)
 	}
+
+	// 必须检查 rows.Err()，否则事务会莫名 rollback
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	m.Clean()
 	return ids, err
 }
@@ -354,7 +376,7 @@ func (m *Model) getSQLCond() string {
 	if len(strArr) == 0 {
 		return ""
 	}
-	return " WHERE " + strings.Join(strArr, " && ")
+	return " WHERE " + strings.Join(strArr, " AND ")
 }
 
 func (m *Model) getSQLField() string {
