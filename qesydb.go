@@ -47,11 +47,11 @@ type Model struct {
 }
 
 // Connect  is a method with a sql.
-func Connect(Host, Port, UserName, Password, DbName string) {
+func Connect(Host, Port, UserName, Password, DbName string) (*pgxpool.Pool, error) {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", UserName, Password, Host, Port, DbName)
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		log.Fatalf("Unable to parse config: %v\n", err)
+		return nil, fmt.Errorf("unable to parse config: %v", err)
 	}
 
 	// 连接池配置
@@ -63,8 +63,17 @@ func Connect(Host, Port, UserName, Password, DbName string) {
 
 	Db, err = pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		log.Fatalf("Unable to create connection pool: %v\n", err)
+		return nil, fmt.Errorf("unable to create connection pool: %v", err)
 	}
+
+	// 🔴 CRITICAL FIX: Test connection immediately
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err = Db.Ping(ctx); err != nil {
+		return nil, fmt.Errorf("connection failed: %v", err) // Catches server-down errors
+	}
+	return Db, nil
 }
 
 // Begin 开始事务
@@ -503,16 +512,12 @@ func (m *Model) query(sqlStr string) ([]map[string]string, error) {
 		)
 	}
 	if err != nil {
+		logRecord("ERR:" + err.Error() + "SQL:" + sqlStr)
 		return nil, err
 	}
 	defer rows.Close()
 
 	fields := rows.FieldDescriptions() // ★替代 Columns()
-	if err != nil {
-		logRecord("ERR:" + err.Error() + "SQL:" + sqlStr)
-		return resultsSlice, err
-	}
-
 	for rows.Next() {
 		result := make(map[string]string)
 		var scanResultContainers []interface{}
