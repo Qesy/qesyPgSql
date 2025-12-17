@@ -48,7 +48,7 @@ type Model struct {
 
 // Connect  is a method with a sql.
 func Connect(Host, Port, UserName, Password, DbName string) (*pgxpool.Pool, error) {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", UserName, Password, Host, Port, DbName)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", Host, Port, UserName, Password, DbName)
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse config: %v", err)
